@@ -197,7 +197,7 @@ void draw_video() {
          wait_msec(50000);
     }
 
-    for (int a = 0; a < epd_bitmap_allArray_LEN; a++) {
+    for (int a = 0; a < epd_bitmap_allArray_LEN-1; a++) {
         for (int j = 0; j < 240; j++) {
             for (int i = 0; i < 426; i++) {
                 drawPixelARGB32(i, j, epd_bitmap_allArray2[a][j * 426 + i]);
