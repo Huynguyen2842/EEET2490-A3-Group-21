@@ -2,6 +2,11 @@
 #include "mbox.h"
 #include "../uart/uart.h"
 #include "font.h"
+#include "mfont.h"
+
+#define FONT_BPG 8
+#define FONT_WIDTH 8
+#define FONT_HEIGHT 8
 
 //Use RGBA32 (32 bits for each pixel)
 #define COLOR_DEPTH 32
@@ -12,6 +17,8 @@ unsigned int width, height, pitch;
 /* Frame buffer address
 * (declare as pointer of unsigned char to access each byte) */
 unsigned char *fb;
+int scale = 2;
+
 /**
 * Set screen resolution to 1024x768
 */
@@ -104,75 +111,6 @@ void drawRectARGB32(int x1, int y1, int x2, int y2, unsigned int attr, int fill)
     }
 }
 
-// void drawPixel(int x, int y, unsigned char attr)
-// {
-//     int offs = (y * pitch) + (x * 4);
-//     *((unsigned int*)(fb + offs)) = vgapal[attr & 0x0f];
-// }
-
-// void drawStringWelcome(int x, int y, char *s, unsigned char attr)
-// {
-//     while (*s) {
-//        if (*s == '\r') {
-//           x = 0;
-//        } else if(*s == '\n') {
-//           x = 0; y += FONT_HEIGHT;
-//        } else {
-// 	  drawCharWelcome(*s, x, y, attr);
-//           x += FONT_WIDTH;
-//        }
-//        s++;
-//     }
-// }
-
-// void drawChar32x32(unsigned char ch, int x, int y, unsigned char attr)
-// {
-//     unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
-
-//     for (int i=0;i<FONT_HEIGHT;i++) {
-// 	for (int j=0;j<FONT_WIDTH;j++) {
-// 	    unsigned char mask = 1 << j;
-// 	    unsigned char col = (*glyph & mask) ? attr & 0x0f : 0x00;
-
-// 	    drawPixel(x+2*j, y+2*i, col);
-//         drawPixel(x+2*j, y+2*i + 1, col);
-//        	drawPixel(x+2*j +1, y+2*i, col);
-//        	drawPixel(x+2*j+1, y+2*i+1, col);
-// 	}
-// 	glyph += FONT_BPL;
-//     }
-// }
-
-// void drawString32x32(int x, int y, char *s, unsigned char attr)
-// {
-//     while (*s) {
-//        if (*s == '\r') {
-//           x = 0;
-//        } else if(*s == '\n') {
-//           x = 0; y += FONT_HEIGHT*2;
-//        } else {
-// 	  drawChar32x32(*s, x, y, attr);
-//           x += FONT_WIDTH*2;
-//        }
-//        s++;
-//     }
-// }
-
-// void drawChar(unsigned char ch, int x, int y, unsigned char attr)
-// {
-//     unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
-
-//     for (int i=0;i<FONT_HEIGHT;i++) {
-// 	for (int j=0;j<FONT_WIDTH;j++) {
-// 	    unsigned char mask = 1 << j;
-// 	    unsigned char col = (*glyph & mask) ? attr & 0x0f : (attr & 0xf0) >> 4;
-
-// 	    drawPixel(x+j, y+i, col);
-// 	}
-// 	glyph += FONT_BPL;
-//     }
-// }
-
 void draw_imageChar(unsigned char ch, int x, int y, unsigned int attr)
 {   
     int index = -1;
@@ -184,72 +122,74 @@ void draw_imageChar(unsigned char ch, int x, int y, unsigned int attr)
         index = 52 + (ch - '0');  // 26 upper-case + 26 lower-case letters
     } else if (ch == ' '){
         return;
+    } 
+    
+    else {
+        // For special characters; you'll need to define how to handle these
+        switch (ch) {
+            // case ',':
+            //     index = 62;  
+            //     break;
+            // case ';':
+            //     index = 63;
+            //     break;
+            // case '!':
+            //     index = 64;
+            //     break;
+            // // Add more special characters here...
+            // case '?':
+            //     index = 65;
+            //     break;
+            // case '\'':
+            //     index = 66;
+            //     break;
+            // case '"':
+            //     index = 67;
+            //     break;
+            // case '(':
+            //     index = 68;
+            //     break;
+            // case ')':
+            //     index = 69;
+            //     break;
+            // case '@':
+            //     index = 70;
+            //     break;
+            // case ':':
+            //     index = 71;
+            //     break;
+            // case '$':
+            //     index = 72;
+            //     break;
+            // case '#':
+            //     index = 73;
+            //     break;
+            // case '%':
+            //     index = 74;
+            //     break;
+            case '&':
+                index = 73;
+                break;
+            default:
+                return;  // Return if character not supported
+        }
     }
-    // } else {
-    //     // For special characters; you'll need to define how to handle these
-    //     switch (ch) {
-    //         case ',':
-    //             index = 62;  
-    //             break;
-    //         case ';':
-    //             index = 63;
-    //             break;
-    //         case '!':
-    //             index = 64;
-    //             break;
-    //         // Add more special characters here...
-    //         case '?':
-    //             index = 65;
-    //             break;
-    //         case '\'':
-    //             index = 66;
-    //             break;
-    //         case '"':
-    //             index = 67;
-    //             break;
-    //         case '(':
-    //             index = 68;
-    //             break;
-    //         case ')':
-    //             index = 69;
-    //             break;
-    //         case '@':
-    //             index = 70;
-    //             break;
-    //         case ':':
-    //             index = 71;
-    //             break;
-    //         case '$':
-    //             index = 72;
-    //             break;
-    //         case '#':
-    //             index = 73;
-    //             break;
-    //         case '%':
-    //             index = 74;
-    //             break;
-    //         case '&':
-    //             index = 75;
-    //         default:
-    //             return;  // Return if character not supported
-    //     }
-    // }
 
     if (index < 0 || index >= myBitmapallArray_LEN) {
         return;  // Character not found in the array
     }
 
     // Looping through image array line by line.
-    for (int j = 0; j < 172; j++){
+    for (int j = 0; j < 160; j++){
         // Looping through image array pixel by pixel of line j.
-        for (int i = 0; i < 158; i++){
+        for (int i = 0; i < 144; i++){
             //Printing each pixel in correct order of the array and lines, columns.
-            unsigned int pixelValue = myBitmapallArray[index][j * 158 + i];
+            unsigned int pixelValue = myBitmapallArray[index][j * 144 + i];
             // Assuming that a white pixel (0xFFFFFFFF) represents the letter and a black pixel (0xFF000000) represents the background
             if (pixelValue == 0x00000000) {
                 // Change letter color based on the attr value passed
                 pixelValue = attr;
-                drawPixelARGB32(i/3 + x, j/3 + y, pixelValue);
+                drawPixelARGB32(i/4 + x, j/4 + y, pixelValue);
             } else if (pixelValue == 0x00ffffff) {
                 // Do nothing, effectively ignoring this pixel
                 continue;
@@ -260,105 +200,86 @@ void draw_imageChar(unsigned char ch, int x, int y, unsigned int attr)
 
 void draw_ImageString(int x, int y, char *s, unsigned int attr) {
     int xOffset = 0;  // To keep track of the total width of the characters drawn so far
-    int spacing = 25;  // Space between each character, you can adjust this
+    int spacing = 20;  // Space between each character, you can adjust this
 
+    unsigned int RainbowColors[7] = {
+        0xFFFF0000, // Red
+        0xFFFFA500, // Orange
+        0xFFFFFF00, // Yellow
+        0xFF00FF00, // Green
+        0xFF0000FF, // Blue
+        0xFF4B0082, // Indigo
+        0xFF8B00FF  // Violet
+    };
+
+    unsigned int coolColors[] = {
+        0xFF00FFFF, // Aqua
+        0xFF1E90FF, // Dodger Blue
+        0xFF6A5ACD, // Slate Blue
+        0xFF00FA9A, // Medium Spring Green
+        0xFF00CED1, // Dark Turquoise
+        0xFF4682B4, // Steel Blue
+        0xFF5F9EA0  // Cadet Blue
+    };
+
+    int i = 0;
     while (*s) {  // Iterate through each character in the string
-        draw_imageChar(*s, x + xOffset, y, attr);  // Draw the character at the new x position
-        xOffset += spacing;  // Move the x position for the next character
+        unsigned int colorToUse;
+        if (attr == 0) {
+            colorToUse = RainbowColors[i % 7];
+        } else if (attr == 1){
+            colorToUse = coolColors[i % 7];
+        } else {
+            colorToUse = attr;
+        }
+        draw_imageChar(*s, x + xOffset, y, colorToUse);  // Draw the character at the new x position
+        if (*s == 's' || *s == 'j' || *s == 'l') {
+            xOffset += (spacing - 5);  // Reduce the space for these characters
+        } else if (*s == 'G' || *s == 'M' || *s == 'R'){
+            xOffset += (spacing + 5);
+        }  else if (*s == 'm') {
+             xOffset += (spacing + 10);
+        } else {
+            xOffset += spacing;
+        }
+        // xOffset += spacing;  // Move the x position for the next character
         s++;  // Go to the next character in the string
+        i++;
     }
 }
 
+void drawChar(unsigned char ch, int x, int y, unsigned char attr)
+{
+    unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
+    for (int i=0;i<FONT_HEIGHT;i++) {
+	for (int j=0;j<FONT_WIDTH;j++) {
+	    unsigned char mask = 1 << j;
+	    unsigned char col = (*glyph & mask) ? attr : 0x00;
+        for (int dx = 0; dx < scale; ++dx) {
+            for (int dy = 0; dy < scale; ++dy) {
+	            drawPixel(x+j*scale + dx, y + i*scale + dy, col);
+            }
+        }
+	}
+	glyph += FONT_BPL;
+    }
+}
+void drawPixel(int x, int y, unsigned char attr) {
+    int offs = (y * pitch) + (x * 4);
+    *((unsigned int*)(fb + offs)) = vgapal[attr & 0x0f];
+}
 
-// void drawString(int x, int y, char *s, unsigned char attr)
-// {
-//     while (*s) {
-//        if (*s == '\r') {
-//           x = 0;
-//        } else if(*s == '\n') {
-//           x = 0; y += FONT_HEIGHT;
-//        } else {
-// 	  drawChar(*s, x, y, attr);
-//           x += FONT_WIDTH;
-//        }
-//        s++;
-//     }
-// }
-
-
-// void drawCharWelcome(unsigned char ch, int x, int y, unsigned char attr)
-// {
-//     unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
-
-//     for (int i = 0; i < FONT_HEIGHT; i++) {
-//         for (int j = 0; j < FONT_WIDTH; j++) {
-//             unsigned char mask = 1 << j;
-//             unsigned char col = (*glyph & mask) ? attr & 0x0f : (attr & 0xf0) >> 4;
-
-//             drawPixel(x+j, y+i, col);
-//             // drawPixel(x+8*j, y+8*i + 1, col);
-//             // drawPixel(x+8*j + 1, y+8*i, col);
-//             // drawPixel(x+8*j + 1, y+8*i + 1, col);
-
-//             //drawPixel(x+8*j, y+8*i, col);
-//             // drawPixel(x+8*j, y+8*i + 2, col);
-//             // drawPixel(x+8*j + 2, y+8*i, col);
-//             // drawPixel(x+8*j + 2, y+8*i+2, col);
-//             // drawPixel(x+8*j + 1, y+8*i + 2, col);
-//             // drawPixel(x+8*j + 2, y+8*i + 1, col);
-            
-
-//             // drawPixel(x+8*j, y+8*i + 3, col);
-//             // drawPixel(x+8*j + 3, y+8*i, col);
-//             // drawPixel(x+8*j + 3, y+8*i+3, col);
-//             // drawPixel(x+8*j + 1, y+8*i + 3, col);
-//             // drawPixel(x+8*j + 3, y+8*i + 1, col);
-
-//             // drawPixel(x+8*j, y+8*i + 4, col);
-//             // drawPixel(x+8*j + 4, y+8*i, col);
-//             // drawPixel(x+8*j + 4, y+8*i+4, col);
-//             // drawPixel(x+8*j + 1, y+8*i + 4, col);
-//             // drawPixel(x+8*j + 4, y+8*i + 1, col);
-
-//             // drawPixel(x+8*j, y+8*i + 5, col);
-//             // drawPixel(x+8*j + 5, y+8*i, col);
-//             // drawPixel(x+8*j + 5, y+8*i+5, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 5, col);
-//             // drawPixel(x+8*j + 5, y+8*i + 8, col);
-
-//             // drawPixel(x+8*j + 5, y+8*i + 2, col);
-//             // drawPixel(x+8*j + 2, y+8*i + 5, col);          
-
-//             // drawPixel(x+8*j  + 5, y+8*i + 3, col);
-//             // drawPixel(x+8*j + 3, y+8*i  + 5, col);            
-
-//             // drawPixel(x+8*j + 5, y+8*i + 4, col);
-//             // drawPixel(x+8*j + 4, y+8*i + 5, col);
-            
-//             // drawPixel(x+8*j, y+8*i + 5, col);
-//             // drawPixel(x+8*j + 5, y+8*i, col);
-//             // drawPixel(x+8*j + 5, y+8*i+5, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 5, col);
-//             // drawPixel(x+8*j + 5, y+8*i + 8, col);
-
-//             // drawPixel(x+8*j, y+8*i + 6, col);
-//             // drawPixel(x+8*j + 6, y+8*i, col);
-//             // drawPixel(x+8*j + 6, y+8*i+6, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 6, col);
-//             // drawPixel(x+8*j + 6, y+8*i + 8, col);
-
-//             // drawPixel(x+8*j, y+8*i + 7, col);
-//             // drawPixel(x+8*j + 7, y+8*i, col);
-//             // drawPixel(x+8*j + 7, y+8*i+7, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 7, col);
-//             // drawPixel(x+8*j + 7, y+8*i + 8, col);
-
-//             // drawPixel(x+8*j, y+8*i + 8, col);
-//             // drawPixel(x+8*j + 8, y+8*i, col);
-//             // drawPixel(x+8*j + 8, y+8*i+8, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 8, col);
-//             // drawPixel(x+8*j + 8, y+8*i + 8, col);
-//         }
-//         glyph += FONT_BPL;
-//     }
-// }
+void drawString(int x, int y, char *s, unsigned char attr)
+{
+    while (*s) {
+       if (*s == '\r') {
+          x = 0;
+       } else if(*s == '\n') {
+          x = 0; y += FONT_HEIGHT * scale;
+       } else {
+	  drawChar(*s, x, y, attr);
+          x += FONT_WIDTH * scale;
+       }
+       s++;
+    }
+}

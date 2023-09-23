@@ -3,10 +3,9 @@
 #include "mbox.h"
 #include "framebf.h"
 #include "image.h"
-// #include "data.h"
 #include "timer.h"
 #include "largeImage.h"
-
+#include "img.h"
 #include "video1.h"
 #include "video2.h"
 #include "video3.h"
@@ -31,9 +30,14 @@ static unsigned char our_memory[1024 * 1024]; // reserve 1 MB for malloc
 static size_t next_index = 0;
 int inGame = 0;
 Frontier *myFrontier;
-
+const char *names[] = {"Claire Macken", "Julia Gaimster", "Robert McClelland"};
+const char *roles[] = {"General Director RMIT Vietnam", "Dean of School of Communication & Design", "Dean of The Business School"};
 int x_direct = 20;
 int y_direct = 0;
+enum Color {
+  RAINBOW = 0,
+  COOLCOLOR = 1
+};
 
 void *malloc(size_t sz)
 {
@@ -56,27 +60,29 @@ void free(void *mem)
 void draw_image()
 {
     // Looping through image array line by line.
-    for (int j = 0; j < 205; j++)
+    for (int j = 0; j < 532; j++)
     {
         // Looping through image array pixel by pixel of line j.
-        for (int i = 0; i < 307; i++)
+        for (int i = 0; i < 800; i++)
         {
             // Printing each pixel in correct order of the array and lines, columns.
-            drawPixelARGB32(i, j, image_allArray[0][j * 307 + i]);
+            drawPixelARGB32(i + 112, j + 118, managerallArray[0][j * 800 + i]);
         }
     }
+    drawString(112, 60, roles[0], 0x0F);
+    drawString(400, 680, names[0], 0x0F);
 }
 
 void draw_LargeImage()
 {
     // Looping through image array line by line.
-    for (int j = 0; j < 1200; j++)
+    for (int j = 0; j < 1820; j++)
     {
         // Looping through image array pixel by pixel of line j.
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 1024; i++)
         {
             // Printing each pixel in correct order of the array and lines, columns.
-            drawPixelARGB32(i, j, largeImage_allArray[0][j * 1000 + i]);
+            drawPixelARGB32(i, j, largeImageallArray[0][j * 1024 + i]);
         }
     }
 }
@@ -223,15 +229,6 @@ void draw_wall(int x, int y)
         }
     }
 }
-
-// //Function to clear the frame
-// void clear_frame(int height, int width) {
-//     for (int j = 0; j < height; j++){
-//         for (int i = 0; i < width; i++){
-//             drawPixelARGB32(i, j, 0x00000000);
-//         }
-//     }
-// }
 
 // Function draw video
 void draw_video()
@@ -697,6 +694,17 @@ void clear_frame(int heightScreen, int widthScreen)
     }
 }
 
+void clear_image(int heightScreen, int widthScreen)
+{
+    for (int j = 0; j < heightScreen; j++)
+    {
+        for (int i = 0; i < widthScreen; i++)
+        {
+            drawPixelARGB32(i, j, 0x00000000);
+        }
+    }
+} 
+
 void clearGame(int widthScreen, int heightScreen)
 {
     for (int j = 0; j < heightScreen * 20; j++)
@@ -825,26 +833,27 @@ void cli()
                 uart_puts("Unrecognized command: \n");
             }
         }
-        else if (strcmp(tokens[0], "vi") == 0)
-        {
-            // while (1)
-            // {
-            //     draw_video();
-            // }
-        }
         else if (strcmp(tokens[0], "img") == 0)
         {
-            clear_frame(205, 307);
-            clear_frame(1200, 1000);
+            clear_frame(1024, 1820);
             is_img = 1;
             draw_image();
+            uart_puts("Welcome to Image Slideshow Mode\n");
+            uart_puts("To navigate, use the following keys:\n");
+            uart_puts("Press 'a' for previous image\n");
+            uart_puts("Press 'd' for next image\n");
+            uart_puts("Press 'q' to exit slideshow\n");
         }
         else if (strcmp(tokens[0], "IMG") == 0)
         {
-            clear_frame(205, 307);
-            clear_frame(1200, 1000);
+            clear_frame(1024, 1820);
             is_IMG = 1;
             draw_LargeImage();
+            uart_puts("Welcome to Large Image Mode\n");
+            uart_puts("To review the image, use the following keys:\n");
+            uart_puts("Press 'w' to scroll up the image\n");
+            uart_puts("Press 's' to scroll down the image\n");
+            uart_puts("Press 'q' to exit slideshow\n");
         }
         else if (strcmp(tokens[0], "clear") == 0)
         {
@@ -852,12 +861,9 @@ void cli()
             clear_command();
         }
         else if (strcmp(tokens[0], "video") == 0)
-        {
+        {   
+            clear_frame(1024, 1820);
             draw_video();
-        }
-        else if (strcmp(tokens[0], "smallimg") == 0)
-        {
-            draw_image();
         }
         else if (strcmp(tokens[0], "game") == 0)
         {
@@ -930,25 +936,32 @@ void cli()
     {
         char keyPressed = getUart();
         if (keyPressed == 'd')
-        {
+        {   
+            clear_image(768,1024);
             current_image++;
-            if (current_image > image_allArray_LEN - 1)
+            if (current_image > managerallArray_LEN - 1)
             {
                 current_image = 0;
             }
-            for (int j = 0; j < 205; j++)
+       
+            for (int j = 0; j < 532; j++)
             {
                 // Looping through image array pixel by pixel of line j.
-                for (int i = 0; i < 307; i++)
+                for (int i = 0; i < 800; i++)
                 {
                     // Printing each pixel in correct order of the array and lines, columns.
-                    drawPixelARGB32(i, j, image_allArray[current_image][j * 307 + i]);
+                    drawPixelARGB32(i + 112, j + 118, managerallArray[current_image][j * 800 + i]);
                 }
             }
+            // draw_ImageString(100, 59, roles[current_image], COOLCOLOR);
+            // draw_ImageString(350, 680, names[current_image], COOLCOLOR);
+            drawString(112, 60, roles[current_image], 0x0F);
+            drawString(400, 680, names[current_image], 0x0F);
         }
 
         if (keyPressed == 'a')
-        {
+        {   
+            clear_image(768,1024);
             if (current_image >= 0)
             {
                 current_image--;
@@ -956,21 +969,30 @@ void cli()
 
             if (current_image < 0)
             {
-                current_image = image_allArray_LEN - 1;
+                current_image = managerallArray_LEN - 1;
             }
-            for (int j = 0; j < 205; j++)
+    
+            for (int j = 0; j < 532; j++)
             {
                 // Looping through image array pixel by pixel of line j.
-                for (int i = 0; i < 307; i++)
+                for (int i = 0; i < 800; i++)
                 {
                     // Printing each pixel in correct order of the array and lines, columns.
-                    drawPixelARGB32(i, j, image_allArray[current_image][j * 307 + i]);
+                    drawPixelARGB32(i + 112, j + 118, managerallArray[current_image][j * 800 + i]);
                 }
-            }
+            }   
+            // draw_ImageString(100, 59, roles[current_image], COOLCOLOR);
+            // draw_ImageString(350, 680, names[current_image], COOLCOLOR);
+            drawString(112, 60, roles[current_image], 0x0F);
+            drawString(400, 680, names[current_image], 0x0F);
         }
 
         if (keyPressed == 'q')
-        {
+        {   
+            uart_puts("\x1B[K");
+            uart_puts("\r");
+            uart_puts("You have exited the Slideshow Mode !!!\n");
+            uart_puts("MyBareMetalOS> ");
             break;
         }
     }
@@ -992,10 +1014,10 @@ void cli()
             for (int j = start_row; j < end_row; j++)
             {
                 // Looping through image array pixel by pixel of line j.
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 1024; i++)
                 {
                     // Printing each pixel in correct order of the array and lines, columns.
-                    drawPixelARGB32(i, j - start_row, largeImage_allArray[0][j * 1000 + i]);
+                    drawPixelARGB32(i, j - start_row, largeImageallArray[0][j * 1024 + i]);
                 }
             }
         }
@@ -1003,8 +1025,8 @@ void cli()
         if (keyPressed == 's')
         {
             vertical_offset += 20;
-            if (vertical_offset > (1200 - screenHeight))
-                vertical_offset = 1200 - screenHeight;
+            if (vertical_offset > (1820 - screenHeight))
+                vertical_offset = 1820 - screenHeight;
 
             int start_row = vertical_offset;
             int end_row = vertical_offset + screenHeight; // Only draw up to the screen height
@@ -1013,101 +1035,22 @@ void cli()
             for (int j = start_row; j < end_row; j++)
             {
                 // Looping through image array pixel by pixel of line j.
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 1024; i++)
                 {
                     // Printing each pixel in correct order of the array and lines, columns.
-                    drawPixelARGB32(i, j - start_row, largeImage_allArray[0][j * 1000 + i]);
+                    drawPixelARGB32(i, j - start_row, largeImageallArray[0][j * 1024 + i]);
                 }
             }
         }
         if (keyPressed == 'q')
-        {
+        {   
+            uart_puts("\x1B[K");
+            uart_puts("\r");
+            uart_puts("You have exited the Large Image Mode !!!\n");
+            uart_puts("MyBareMetalOS> ");
             break;
         }
     }
-
-    // if (c == 'd') {
-    //     current_image++;
-    //     uart_dec(current_image);
-    //     if (current_image > image_allArray_LEN  - 1){
-    //          current_image = 0;
-    //     }
-    //     for (int j = 0; j < 205; j++){
-    //         // Looping through image array pixel by pixel of line j.
-    //         for (int i = 0; i < 307; i++){
-    //             // Printing each pixel in correct order of the array and lines, columns.
-    //             drawPixelARGB32(i, j, image_allArray[current_image][j * 307 + i]);
-    //         }
-    //     }
-
-    //     uart_puts("\r");
-    //     uart_puts("\x1B[K");
-    //     uart_puts("MyBareMetalOS> ");
-    // }
-
-    // if (c == 'a') {
-    //     if (current_image >= 0){
-    //         current_image--;
-    //     }
-
-    //     uart_dec(current_image);
-    //     if (current_image < 0){
-    //         current_image = image_allArray_LEN  - 1;
-    //     }
-    //     for (int j = 0; j < 205; j++){
-    //         // Looping through image array pixel by pixel of line j.
-    //         for (int i = 0; i < 307; i++){
-    //             // Printing each pixel in correct order of the array and lines, columns.
-    //             drawPixelARGB32(i, j, image_allArray[current_image][j * 307 + i]);
-    //         }
-    //     }
-
-    //     uart_puts("\r");
-    //     uart_puts("\x1B[K");
-    //     uart_puts("MyBareMetalOS> ");
-    // }
-
-    // if (c == 'w') {
-    //     cli_buffer[index] = '\0';
-    //     vertical_offset -= 20;
-    //     if (vertical_offset < 0) vertical_offset = 0;
-
-    //     int start_row = vertical_offset;
-    //     int end_row = vertical_offset + screenHeight; // Only draw up to the screen height
-
-    //      // Looping through image array line by line.
-    //     for (int j = start_row; j < end_row; j++){
-    //         // Looping through image array pixel by pixel of line j.
-    //         for (int i = 0; i < 1000; i++){
-    //             // Printing each pixel in correct order of the array and lines, columns.
-    //             drawPixelARGB32(i, j - start_row, largeImage_allArray[0][j * 1000 + i]);
-    //         }
-    //     }
-
-    //     uart_puts("\r");
-    //     uart_puts("\x1B[K");
-    //     uart_puts("MyBareMetalOS> ");
-    // }
-
-    // if (c== 's') {
-    //     vertical_offset += 20;
-    //     if (vertical_offset > (1200 - screenHeight)) vertical_offset = 1200 - screenHeight;
-
-    //     int start_row = vertical_offset;
-    //     int end_row = vertical_offset + screenHeight; // Only draw up to the screen height
-
-    //      // Looping through image array line by line.
-    //     for (int j = start_row; j < end_row; j++){
-    //         // Looping through image array pixel by pixel of line j.
-    //         for (int i = 0; i < 1000; i++){
-    //             // Printing each pixel in correct order of the array and lines, columns.
-    //             drawPixelARGB32(i, j - start_row, largeImage_allArray[0][j * 1000 + i]);
-    //         }
-    //     }
-    //     uart_puts("\r");
-    //     uart_puts("\x1B[K");
-    //     uart_puts("MyBareMetalOS> ");
-    // }
 
     if (c == '+')
     { // Use '_' as UP arrow
@@ -1191,16 +1134,16 @@ void getARMclockrate()
     uart_puts("\n");
 }
 
-// void SetPhyWHFrame(){
-//     unsigned int *physize = 0; // Pointer to response data
-//     mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_SETPHYWH, &physize, 8, 8, 1024, 768);
-//     mbox_call(ADDR(mBuf), MBOX_CH_PROP);
-//     uart_puts("Got Actual Physical widthScreen: ");
-//     uart_dec(physize[0]);
-//     uart_puts("\nGot Actual Physical heightScreen: ");
-//     uart_dec(physize[1]);
-//     uart_puts("\n");
-// }
+void SetPhyWHFrame(){
+    unsigned int *physize = 0; // Pointer to response data
+    mbox_buffer_setup(ADDR(mBuf), MBOX_TAG_SETPHYWH, &physize, 8, 8, 1024, 768);
+    mbox_call(ADDR(mBuf), MBOX_CH_PROP);
+    uart_puts("Got Actual Physical widthScreen: ");
+    uart_dec(physize[0]);
+    uart_puts("\nGot Actual Physical heightScreen: ");
+    uart_dec(physize[1]);
+    uart_puts("\n");
+}
 
 void main()
 {
@@ -1211,8 +1154,6 @@ void main()
     // drawRectARGB32(200,200,400,400,0x000000CC,1); //BLUE
     // drawRectARGB32(250,250,400,400,0x00FFFF00,1); //YELLOW
     // drawPixelARGB32(300, 300, 0x00FF0000); //RED
-
-    // drawStringWelcome(270, 280, "Nguyen Giang", 0x00E74C3C);
 
     uart_init();
     uart_puts("\033[31m");
@@ -1309,34 +1250,19 @@ void main()
     uart_puts("\n");
     // SetPhyWHFrame();
     // draw_imageChar('A',500,500,0xFFFF0000);
-    draw_ImageString(250, 400, "Nguyen Giang Huy S3836454", 0xFFFFD700);
-    // // draw_ImageString(0, 400, "s3836454", 0xFFFF0000);
-    draw_ImageString(250, 450, "Hua Nam Huy S3811308", 0xFFFFA500);
-    draw_ImageString(250, 500, "Le Hong Thai S3752577", 0xFF00FFFF);
-    draw_ImageString(250, 550, "Tran Hoang Vu S3915185", 0xFFFF00FF);
+    // draw_ImageString(250, 400, "Nguyen Giang Huy S3836454", RAINBOW);
+    // // // draw_ImageString(0, 400, "s3836454", 0xFFFF0000);
+    // draw_ImageString(250, 450, "Hua Nam Huy S3811308", RAINBOW);
+    // draw_ImageString(250, 500, "Le Hong Thai S3752577", RAINBOW);
+    // draw_ImageString(250, 550, "Tran Hoang Vu S3915185", RAINBOW);
 
-    // draw_imageChar('A',500,500,0xFFFF0000);
-    //   draw_imageChar('W',500,500,0xFFFF0000);
-
-    // ransparent: 0x00000000
-    // White: 0xFFFFFFFF
-    // Black: 0xFF000000
-    // Red: 0xFFFF0000
-    // Green: 0xFF00FF00
-    // Blue: 0xFF0000FF
-    // Yellow: 0xFFFFFF00 (Red + Green)
-    // Cyan: 0xFF00FFFF (Green + Blue)
-    // Magenta: 0xFFFF00FF (Red + Blue)
-    // Orange: 0xFFFFA500
-    // Purple: 0xFF800080
-    // Brown: 0xFFA52A2A
-    // Gray: 0xFF808080
-    // Light Gray: 0xFFD3D3D3
-    // Dark Gray: 0xFFA9A9A9
-    // Pink: 0xFFFFC0CB
-    // Lime: 0xFF00FF00
-    // Gold: 0xFFFFD700
-    // Silver: 0xFFC0C0C0
+     drawString(200, 300,"EEET2490 - Embedded System: OS and Interfacing", 0x04);
+     drawString(200, 350,"Assignment 3 - Group 21", 0x0E);
+     drawString(200, 400,"<Student name>          <Student ID>", 0x06);
+     drawString(200,500,"Nguyen Giang Huy   -     S3836454", 0x0A);
+     drawString(200,450,"Hua Nam Huy        -     S3811308", 0x09);
+     drawString(200,550,"Le Hong Thai       -     S3752577", 0x05);
+     drawString(200,600,"Tran Hoang Vu      -     S3915185", 0x0D);
 
     uart_puts("\n");
     uart_puts("MyBareMetalOS> ");
