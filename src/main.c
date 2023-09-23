@@ -1261,7 +1261,7 @@ void main()
      drawString(200, 400,"<Student name>          <Student ID>", 0x06);
      drawString(200,500,"Nguyen Giang Huy   -     S3836454", 0x0A);
      drawString(200,450,"Hua Nam Huy        -     S3811308", 0x09);
-     drawString(200,550,"Le Hong Thai       -     S3752577", 0x05);
+     drawString(200,550,"Le Hong Thai       -     S3752577", 0x0F);
      drawString(200,600,"Tran Hoang Vu      -     S3915185", 0x0D);
 
     uart_puts("\n");
