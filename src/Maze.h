@@ -9,6 +9,6 @@ void ShowMaze(const char *maze, int width, int height);
 void CarveMaze(char *maze, int width, int height, int x, int y);
 
 /* Generate maze in matrix maze with size width, height. */
-void GenerateMaze(char *maze, int width, int height);
+void GenerateMaze(char *maze, int width, int height, int *path, int *dist);
 
 int rand_range(int min, int max);

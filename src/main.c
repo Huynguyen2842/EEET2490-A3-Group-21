@@ -34,6 +34,13 @@ const char *names[] = {"Claire Macken", "Julia Gaimster", "Robert McClelland"};
 const char *roles[] = {"General Director RMIT Vietnam", "Dean of School of Communication & Design", "Dean of The Business School"};
 int x_direct = 20;
 int y_direct = 0;
+int *path;
+int *dist;
+
+int x_monster = 0;
+int y_monster = 0;
+int directionPathIndex = 0;
+
 enum Color {
   RAINBOW = 0,
   COOLCOLOR = 1
@@ -127,7 +134,7 @@ int checkDirection(int dir) {
     switch (dir)
     {
     case 3:
-        if (myFrontier->north == 0) {
+        if (myFrontier->north == 0 || myFrontier->north == 3 || myFrontier->north == 4 || myFrontier->north == 5) {
             return 1;
         }
         if (myFrontier->north == 2) {
@@ -135,7 +142,7 @@ int checkDirection(int dir) {
         }
         break;
     case 4:
-        if (myFrontier->east == 0) {
+        if (myFrontier->east == 0 || myFrontier->east == 3 || myFrontier->east == 4 || myFrontier->east == 5) {
             return 1;
         }
         if (myFrontier->east == 2) {
@@ -143,7 +150,7 @@ int checkDirection(int dir) {
         }
         break;
     case 5:
-        if (myFrontier->south == 0) {
+        if (myFrontier->south == 0 || myFrontier->south == 3 || myFrontier->south == 4 || myFrontier->south == 5) {
             return 1;
         }
         if (myFrontier->south == 2) {
@@ -151,7 +158,7 @@ int checkDirection(int dir) {
         }
         break;
     case 6:
-        if (myFrontier->west == 0) {
+        if (myFrontier->west == 0 || myFrontier->west == 3 || myFrontier->west == 4 || myFrontier->west == 5) {
             return 1;
         }
         if (myFrontier->west == 2) {
@@ -190,6 +197,17 @@ void drawMap(const char *maze, int widthScreen, int heightScreen)
             case 2:
                 draw_destination(x * 20, y * 20);
                 break;
+            case 3:
+                draw_destination(x * 20, y * 20);
+                x_monster = x * 20;
+                y_monster = y * 20;
+                break;
+            case 5:
+                draw_destination(x * 20, y * 20);
+                x_direct = x * 20;
+                y_direct = y * 20;
+                getNearFrontier(maze, x, y);
+                break;
             }
         }
     }
@@ -200,22 +218,6 @@ void drawMap(const char *maze, int widthScreen, int heightScreen)
     for (int y = 0; y < heightScreen; y++)
     {
         draw_wall(widthScreen * 20, y * 20);
-    }
-    while (1)
-    {
-        int var = rand_range(0, widthScreen * heightScreen);
-        if (maze[var] == 0)
-        {
-            int y_index = var / widthScreen;
-            int x_index = var % widthScreen;
-            printf("This is x_index: %d\n", x_index);
-            printf("This is y_index: %d\n", y_index);
-            draw_destination(x_index * 20, y_index * 20);
-            x_direct = x_index * 20;
-            y_direct = y_index * 20;
-            getNearFrontier(maze, x_index, y_index);
-            break;
-        }
     }
 }
 
@@ -668,7 +670,9 @@ void play_game()
 
 void GameGenerator()
 {
+    path = (char *)malloc(widthScreen * heightScreen * sizeof(char));
     maze = (char *)malloc(widthScreen * heightScreen * sizeof(char));
+    dist = (int *)malloc(sizeof(int));
     if (maze == NULL)
     {
         printf("Not enough memory, the game cant be generated!");
@@ -676,20 +680,40 @@ void GameGenerator()
     else
     {
         clearGame(widthScreen, heightScreen);
-        GenerateMaze(maze, widthScreen, heightScreen);
+        GenerateMaze(maze, widthScreen, heightScreen, path, dist);
         ShowMaze(maze, widthScreen, heightScreen);
         drawMap(maze, widthScreen, heightScreen);
+        // printf("%d\n", *(dist));
+        // printf("Step of the game: \n");
+        // for (int i = 0; i < widthScreen * heightScreen; i++) {
+        //     if (path[i] == 9999) {
+        //         break;
+        //     }
+
+        //     printf("x: %d ", path[i] % widthScreen);
+        //     printf("y: %d \n", path[i] / widthScreen);
+        // }
         inGame = 1;
     }
 }
 
-void clear_frame(int heightScreen, int widthScreen)
+void clearPlayeFrame(int heightScreen, int widthScreen)
 {
     for (int j = 0; j < heightScreen; j++)
     {
         for (int i = 0; i < widthScreen; i++)
         {
             drawPixelARGB32(i + x_direct, j + y_direct, 0x00000000);
+        }
+    }
+}
+void clearMonsterFrame(int heightScreen, int widthScreen)
+{
+    for (int j = 0; j < heightScreen; j++)
+    {
+        for (int i = 0; i < widthScreen; i++)
+        {
+            drawPixelARGB32(i + x_monster, j + y_monster, 0x00000000);
         }
     }
 }
@@ -721,16 +745,31 @@ void cli()
     static int index = 0;
     int is_img = 0;
     int is_IMG = 0;
+    char c;
     // read and send back each char
-    char c = uart_getc();
+    if (inGame == 1) {
+        if (directionPathIndex < *(dist)) {
+            wait_msec(100000);
+            clearMonsterFrame(20, 21);
+            x_monster = path[directionPathIndex] % widthScreen * 20;
+            y_monster = path[directionPathIndex] / widthScreen * 20;
+            printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
+            directionPathIndex++;
+            draw_destination(x_monster, y_monster);
+        }
+    }
+    if (inGame == 0) {
+    c = uart_getc();
+    }
 
     if (inGame == 1)
     {
+        c = getUart();
         if (c == 'w')
         {
             if (checkDirection(3) == 1)
             {
-                clear_frame(20, 21);
+                clearPlayeFrame(20, 21);
                 y_direct -= 20;
             }
             if (checkDirection(3) == 2)
@@ -743,7 +782,7 @@ void cli()
         {
             if (checkDirection(6) == 1)
             {
-                clear_frame(20, 21);
+                clearPlayeFrame(20, 21);
                 x_direct -= 20;
             }
             if (checkDirection(6) == 2)
@@ -756,7 +795,7 @@ void cli()
         {
             if (checkDirection(5) == 1)
             {
-                clear_frame(20, 21);
+                clearPlayeFrame(20, 21);
                 y_direct += 20;
             }
             if (checkDirection(5) == 2)
@@ -769,7 +808,7 @@ void cli()
         {
             if (checkDirection(4) == 1)
             {
-                clear_frame(20, 21);
+                clearPlayeFrame(20, 21);
                 x_direct += 20;
             }
             if (checkDirection(4) == 2)
@@ -835,7 +874,7 @@ void cli()
         }
         else if (strcmp(tokens[0], "img") == 0)
         {
-            clear_frame(1024, 1820);
+            clearPlayeFrame(1024, 1820);
             is_img = 1;
             draw_image();
             uart_puts("Welcome to Image Slideshow Mode\n");
@@ -846,7 +885,7 @@ void cli()
         }
         else if (strcmp(tokens[0], "IMG") == 0)
         {
-            clear_frame(1024, 1820);
+            clearPlayeFrame(1024, 1820);
             is_IMG = 1;
             draw_LargeImage();
             uart_puts("Welcome to Large Image Mode\n");
@@ -862,7 +901,7 @@ void cli()
         }
         else if (strcmp(tokens[0], "video") == 0)
         {   
-            clear_frame(1024, 1820);
+            clearPlayeFrame(1024, 1820);
             draw_video();
         }
         else if (strcmp(tokens[0], "game") == 0)

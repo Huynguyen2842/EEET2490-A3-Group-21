@@ -1,4 +1,8 @@
 #include "Maze.h"
+
+
+int player;
+int monster;
 /* Display the maze. */
 void ShowMaze(const char *maze, int width, int height)
 {
@@ -14,6 +18,15 @@ void ShowMaze(const char *maze, int width, int height)
             break;
          case 2:
             printf("<>");
+            break;
+         case 3:
+            printf("00");
+            break;
+         case 4:
+            printf("99");
+            break;
+         case 5:
+            printf("AA");
             break;
          default:
             printf("  ");
@@ -74,7 +87,43 @@ int rand_range(int min, int max)
    return min + (int)(random_value % range);
 }
 
-void GenerateMaze(char *maze, int width, int height)
+int FindToDirection(char *maze, int width, int height, int chaser, int destination, int *path, int *dist, int findingDist) {
+   if (maze[chaser] == 1 || chaser < 0 || chaser >= width * height || maze[chaser] == 4) {
+      return 666;
+   }
+   if (maze[chaser] == 2) {
+      *(dist) = findingDist;
+      path[findingDist + 1] = 9999;
+      for (int x = 0; x < width * height; x++) {
+         if (maze[x] == 4) {
+            maze[x] = 0;
+         }
+      }
+      maze[monster] = 3;
+      return 999;
+   }
+   path[findingDist] = chaser;
+   maze[chaser] = 4;
+   if (FindToDirection(maze, width, height, chaser - width, destination, path, dist, findingDist + 1) == 999) {
+      return 999;
+   }
+   if (chaser -1 >= ((chaser / width) * width)) {
+      if (FindToDirection(maze, width, height, chaser - 1, destination, path, dist, findingDist + 1) == 999) {
+         return 999;
+      }
+   }
+   if (FindToDirection(maze, width, height, chaser + width, destination, path, dist, findingDist + 1) == 999) {
+      return 999;
+   }
+   if (chaser + 1 < ((chaser / width) * width + width)) {
+      if (FindToDirection(maze, width, height, chaser + 1, destination, path, dist, findingDist + 1) == 999) {
+         return 999;
+      }
+   }
+   return 101;
+}
+
+void GenerateMaze(char *maze, int width, int height, int *path, int *dist)
 {
    int x, y, dir;
    int frontier = 0;
@@ -185,15 +234,36 @@ void GenerateMaze(char *maze, int width, int height)
          frontier++;
       }
    }
+   int destination = 0;
    while (1)
    {
       dir = rand_range(0, width * height);
       if (maze[dir] == 0)
       {
          maze[dir] = 2;
+         destination = dir;
          break;
       }
    }
-
-   printf("This is amount of frontier: %d\n", frontier - frontierParsed);
+   while (1)
+   {
+      dir = rand_range(0, width * height);
+      if (maze[dir] == 0)
+      {
+         maze[dir] = 5;
+         player = dir;
+         break;
+      }
+   }
+   while (1)
+   {
+      dir = rand_range(0, width * height);
+      if (maze[dir] == 0)
+      {
+         maze[dir] = 3;
+         monster = dir;
+         break;
+      }
+   }
+   FindToDirection(maze, width, height, dir, destination, path, dist, 0);
 }
