@@ -40,6 +40,10 @@ int *dist;
 int x_monster = 0;
 int y_monster = 0;
 int directionPathIndex = 0;
+int bombCount = 0;
+
+int x_bomb;
+int y_bomb;
 
 enum Color {
   RAINBOW = 0,
@@ -670,6 +674,7 @@ void play_game()
 
 void GameGenerator()
 {
+    directionPathIndex = 0;
     path = (char *)malloc(widthScreen * heightScreen * sizeof(char));
     maze = (char *)malloc(widthScreen * heightScreen * sizeof(char));
     dist = (int *)malloc(sizeof(int));
@@ -683,16 +688,6 @@ void GameGenerator()
         GenerateMaze(maze, widthScreen, heightScreen, path, dist);
         ShowMaze(maze, widthScreen, heightScreen);
         drawMap(maze, widthScreen, heightScreen);
-        // printf("%d\n", *(dist));
-        // printf("Step of the game: \n");
-        // for (int i = 0; i < widthScreen * heightScreen; i++) {
-        //     if (path[i] == 9999) {
-        //         break;
-        //     }
-
-        //     printf("x: %d ", path[i] % widthScreen);
-        //     printf("y: %d \n", path[i] / widthScreen);
-        // }
         inGame = 1;
     }
 }
@@ -704,6 +699,16 @@ void clearPlayeFrame(int heightScreen, int widthScreen)
         for (int i = 0; i < widthScreen; i++)
         {
             drawPixelARGB32(i + x_direct, j + y_direct, 0x00000000);
+        }
+    }
+}
+
+void clearFrameBox(int x, int y) {
+    for (int j = 0; j < 20; j++)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            drawPixelARGB32(i + x, j + y, 0x00000000);
         }
     }
 }
@@ -746,14 +751,31 @@ void cli()
     int is_img = 0;
     int is_IMG = 0;
     char c;
+    static int bombTimer = 0;
     // read and send back each char
     if (inGame == 1) {
+        wait_msec(100000);
+        if (bombTimer > 30) {
+            bombCount = 0;
+            bombTimer = 0;
+            maze[y_bomb * widthScreen + x_bomb - 1] = 0;
+            maze[y_bomb * widthScreen + x_bomb + 1] = 0;
+            maze[y_bomb * widthScreen + x_bomb - widthScreen] = 0;
+            maze[y_bomb * widthScreen + x_bomb + widthScreen] = 0;
+            clearFrameBox((x_bomb) * 20 - 20, y_bomb * 20);
+            clearFrameBox((x_bomb) * 20 + 20, y_bomb * 20);
+            clearFrameBox(x_bomb * 20, (y_bomb) * 20 + 20);
+            clearFrameBox(x_bomb * 20, (y_bomb) * 20 - 20);
+        }
+        if (bombCount == 1) {
+            bombTimer++;
+            printf("%d\n", bombTimer);
+        }
         if (directionPathIndex < *(dist)) {
-            wait_msec(100000);
             clearMonsterFrame(20, 21);
             x_monster = path[directionPathIndex] % widthScreen * 20;
             y_monster = path[directionPathIndex] / widthScreen * 20;
-            printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
+            // printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
             directionPathIndex++;
             draw_destination(x_monster, y_monster);
         }
@@ -816,6 +838,19 @@ void cli()
                 GameGenerator();
                 return;
             }
+        }
+        /* WALL BOMB
+        */
+        else if (c == 'k') {
+            x_bomb = x_direct / 20;
+            y_bomb = y_direct / 20;
+            bombCount++;
+        }
+        /* MONSTER KILLER BOMB
+        */
+        else if (c == 'j') {
+            int x_bomb = x_direct / 20;
+            int y_bomb = y_direct / 20;
         }
         getNearFrontier(maze, x_direct / 20, y_direct / 20);
         draw_destination(x_direct, y_direct);
