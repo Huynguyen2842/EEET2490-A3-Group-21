@@ -744,6 +744,9 @@ void clearGame(int widthScreen, int heightScreen)
         }
     }
 }
+int abs(int n) {
+    return (n < 0) ? -n : n;
+}
 void cli()
 {
     static char cli_buffer[MAX_CMD_SIZE];
@@ -752,6 +755,7 @@ void cli()
     int is_IMG = 0;
     char c;
     static int bombTimer = 0;
+    static int monsterTimer = 0;
     // read and send back each char
     if (inGame == 1) {
         wait_msec(100000);
@@ -766,18 +770,27 @@ void cli()
             clearFrameBox((x_bomb) * 20 + 20, y_bomb * 20);
             clearFrameBox(x_bomb * 20, (y_bomb) * 20 + 20);
             clearFrameBox(x_bomb * 20, (y_bomb) * 20 - 20);
+            printf("%d %d", abs(x_monster - x_bomb * 20), abs(y_monster - y_bomb * 20));
+            if (abs(x_monster - x_bomb * 20) <= 21 && abs(y_monster - y_bomb * 20) <= 21) {
+                *(dist) = 0;
+
+            }
         }
+        monsterTimer++;
+
         if (bombCount == 1) {
             bombTimer++;
             printf("%d\n", bombTimer);
         }
-        if (directionPathIndex < *(dist)) {
-            clearMonsterFrame(20, 21);
-            x_monster = path[directionPathIndex] % widthScreen * 20;
-            y_monster = path[directionPathIndex] / widthScreen * 20;
-            // printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
-            directionPathIndex++;
-            draw_destination(x_monster, y_monster);
+        if (monsterTimer % 5 == 0) {
+            if (directionPathIndex < *(dist)) {
+                clearMonsterFrame(20, 21);
+                x_monster = path[directionPathIndex] % widthScreen * 20;
+                y_monster = path[directionPathIndex] / widthScreen * 20;
+                // printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
+                directionPathIndex++;
+                draw_destination(x_monster, y_monster);
+            }
         }
     }
     if (inGame == 0) {
