@@ -69,8 +69,8 @@ void draw_image()
             drawPixelARGB32(i + 112, j + 118, managerallArray[0][j * 800 + i]);
         }
     }
-    drawString(112, 60, roles[0], 0x0F);
-    drawString(400, 680, names[0], 0x0F);
+    renderString(112, 60, roles[0], 0x0F);
+    renderString(400, 680, names[0], 0x0F);
 }
 
 void draw_LargeImage()
@@ -405,6 +405,10 @@ void help_command(const char *cmd)
     uart_puts("clear                                Clear screen\n");
     uart_puts("setcolor                             Set text color, and/or background color of the console to one of the following colors: BLACK, RED, GREEN, YELLOW, BLUE, PURPLE, CYAN, WHITE\n");
     uart_puts("showinfo                             Show board revision and board MAC address\n");
+    uart_puts("img                                  Display a slideshow of three images\n");
+    uart_puts("IMG                                  Display a large images\n");
+    uart_puts("video                                Display a short video\n");
+    uart_puts("game                                 Start Playing Game\n");
 }
 
 void help_info(const char *cmd)
@@ -853,7 +857,7 @@ void cli()
             uart_puts("To review the image, use the following keys:\n");
             uart_puts("Press 'w' to scroll up the image\n");
             uart_puts("Press 's' to scroll down the image\n");
-            uart_puts("Press 'q' to exit slideshow\n");
+            uart_puts("Press 'q' to exit the Large Image Mode\n");
         }
         else if (strcmp(tokens[0], "clear") == 0)
         {
@@ -955,8 +959,8 @@ void cli()
             }
             // draw_ImageString(100, 59, roles[current_image], COOLCOLOR);
             // draw_ImageString(350, 680, names[current_image], COOLCOLOR);
-            drawString(112, 60, roles[current_image], 0x0F);
-            drawString(400, 680, names[current_image], 0x0F);
+            renderString(112, 60, roles[current_image], 0x0F);
+            renderString(400, 680, names[current_image], 0x0F);
         }
 
         if (keyPressed == 'a')
@@ -983,8 +987,8 @@ void cli()
             }   
             // draw_ImageString(100, 59, roles[current_image], COOLCOLOR);
             // draw_ImageString(350, 680, names[current_image], COOLCOLOR);
-            drawString(112, 60, roles[current_image], 0x0F);
-            drawString(400, 680, names[current_image], 0x0F);
+            renderString(112, 60, roles[current_image], 0x0F);
+            renderString(400, 680, names[current_image], 0x0F);
         }
 
         if (keyPressed == 'q')
@@ -1175,79 +1179,81 @@ void main()
     uart_puts("888   d88P  d8888888888 888  T88b  888            Y88b. .d88P Y88b  d88P\n");
     uart_puts("8888888P'  d88P     888 888   T88b 8888888888      'Y88888P'   'Y8888P'\n");
     uart_puts("\n\n");
-    uart_puts("Developed by Nguyen Giang Huy - s3836454\n");
-    int num = 123;
-    int nev_num = -123;
-    float nev_float = -999.123;
-    float float_num = 123.4545;
-    char ch = 'A';
-    int hex_num = 100;
-    char str[] = "Hello World!";
-    uart_puts("\033[36m");
-    printf("\n///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n/////////////////   TEST     ALL     CASES     FOR     DECIMAL  ///////////////////////////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("Developed by Nguyen Giang Huy - s3836454\n");
+    uart_puts("Developed by Group 21\n");
     uart_puts("\033[37m");
-    printf("Positive Integer Number                             :%d\n", num);
-    printf("Negative Integer Number                             :%d\n", nev_num);
-    printf("Preceding Positive Number with blanks               :%10d\n", num);
-    printf("Preceding Negative Number with blanks               :%10d\n", nev_num);
-    printf("Negative Number with 0Flag                          :%010d\n", nev_num);
-    printf("Positive Number with 0Flag                          :%010d\n", num);
-    printf("Positive Number with widthScreen                          :%*d\n", 10, num);
-    printf("Negative Number with widthScreen                          :%*d\n", 10, nev_num);
-    printf("Integer Value with padding size .*                  : %.*d\n", 5, num);
-    uart_puts("\033[32m");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n///////////////    TEST     ALL     CASES     FOR     FLOAT   /////////////////////////////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
-    uart_puts("\033[37m");
-    printf("Positive Float Number                               :%f\n", float_num);
-    printf("Negative Float Number:                              :%f\n", nev_float);
-    printf("Float with Precision                                :%.3f\n", float_num);
-    printf("widthScreen and Precision test                            :%15.4f\n", 123.45678);
-    printf("widthScreen and Precision test                            :%015f\n", 3.12);
-    printf("widthScreen and Precision test with padding:              :%010.2f\n", 123.45678);
-    uart_puts("\033[33m");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n////////////////   TEST     ALL     CASES     FOR     STRING     AND     CHARACTER   //////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
-    uart_puts("\033[37m");
-    printf("Character                                           :%c\n", ch);
-    printf("Character with widthScreen                                :<%15c>\n", ch);
-    printf("Character Value with .*                             :%.*c\n", 0, ch);
-    printf("Character with widthScreen and NO 0 FLAG includes size .* :<%*c>\n", 15, 'a');
-    printf("String                                              :%s\n", str);
-    printf("Widtd With String and NO 0 FLAG                     :<%15s>\n", "Embedded");
-    printf("widthScreen With String and NO 0 FLAG includes size .*    :<%*s>\n", 15, "Embedded");
-    printf("widthScreen Display With String and 0 FLAG                :<%015s>\n", "Embedded");
-    uart_puts("\033[34m");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n/////////////////  TEST     ALL     CASES     FOR     HEXADECIMAL    //////////////////////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
-    uart_puts("\033[37m");
-    printf("Hexadecimal:                                        :%x\n", hex_num);
-    printf("Hex Value with padding size .*                      :%.*x\n", 5, hex_num);
-    uart_puts("\033[35m");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n////////////////   TEST     FOR     PERCENTAGE     SYMBOL         /////////////////////////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
-    uart_puts("\033[37m");
-    printf("This is percentage symbol                           :%%\n");
-    uart_puts("\033[30m");
-    printf("\n///////////////////////////////////////////////////////////////////////////////////////////");
-    printf("\n////////////////   MAIL     BOX     SET     UP         ////////////////////////////////////\n");
-    printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
-    uart_puts("\033[37m");
-    uart_puts("\n");
-    getBoardRevision();
-    uart_puts("\n");
-    getfirmwareRevision();
-    uart_puts("\n");
-    getARMclockrate();
-    uart_puts("\n");
-    getUARTclockrate();
-    uart_puts("\n");
+    // int num = 123;
+    // int nev_num = -123;
+    // float nev_float = -999.123;
+    // float float_num = 123.4545;
+    // char ch = 'A';
+    // int hex_num = 100;
+    // char str[] = "Hello World!";
+    // uart_puts("\033[36m");
+    // printf("\n///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n/////////////////   TEST     ALL     CASES     FOR     DECIMAL  ///////////////////////////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // printf("Positive Integer Number                             :%d\n", num);
+    // printf("Negative Integer Number                             :%d\n", nev_num);
+    // printf("Preceding Positive Number with blanks               :%10d\n", num);
+    // printf("Preceding Negative Number with blanks               :%10d\n", nev_num);
+    // printf("Negative Number with 0Flag                          :%010d\n", nev_num);
+    // printf("Positive Number with 0Flag                          :%010d\n", num);
+    // printf("Positive Number with widthScreen                          :%*d\n", 10, num);
+    // printf("Negative Number with widthScreen                          :%*d\n", 10, nev_num);
+    // printf("Integer Value with padding size .*                  : %.*d\n", 5, num);
+    // uart_puts("\033[32m");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n///////////////    TEST     ALL     CASES     FOR     FLOAT   /////////////////////////////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // printf("Positive Float Number                               :%f\n", float_num);
+    // printf("Negative Float Number:                              :%f\n", nev_float);
+    // printf("Float with Precision                                :%.3f\n", float_num);
+    // printf("widthScreen and Precision test                            :%15.4f\n", 123.45678);
+    // printf("widthScreen and Precision test                            :%015f\n", 3.12);
+    // printf("widthScreen and Precision test with padding:              :%010.2f\n", 123.45678);
+    // uart_puts("\033[33m");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n////////////////   TEST     ALL     CASES     FOR     STRING     AND     CHARACTER   //////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // printf("Character                                           :%c\n", ch);
+    // printf("Character with widthScreen                                :<%15c>\n", ch);
+    // printf("Character Value with .*                             :%.*c\n", 0, ch);
+    // printf("Character with widthScreen and NO 0 FLAG includes size .* :<%*c>\n", 15, 'a');
+    // printf("String                                              :%s\n", str);
+    // printf("Widtd With String and NO 0 FLAG                     :<%15s>\n", "Embedded");
+    // printf("widthScreen With String and NO 0 FLAG includes size .*    :<%*s>\n", 15, "Embedded");
+    // printf("widthScreen Display With String and 0 FLAG                :<%015s>\n", "Embedded");
+    // uart_puts("\033[34m");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n/////////////////  TEST     ALL     CASES     FOR     HEXADECIMAL    //////////////////////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // printf("Hexadecimal:                                        :%x\n", hex_num);
+    // printf("Hex Value with padding size .*                      :%.*x\n", 5, hex_num);
+    // uart_puts("\033[35m");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n////////////////   TEST     FOR     PERCENTAGE     SYMBOL         /////////////////////////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // printf("This is percentage symbol                           :%%\n");
+    // uart_puts("\033[30m");
+    // printf("\n///////////////////////////////////////////////////////////////////////////////////////////");
+    // printf("\n////////////////   MAIL     BOX     SET     UP         ////////////////////////////////////\n");
+    // printf("///////////////////////////////////////////////////////////////////////////////////////////\n");
+    // uart_puts("\033[37m");
+    // uart_puts("\n");
+    // getBoardRevision();
+    // uart_puts("\n");
+    // getfirmwareRevision();
+    // uart_puts("\n");
+    // getARMclockrate();
+    // uart_puts("\n");
+    // getUARTclockrate();
+    // uart_puts("\n");
     // SetPhyWHFrame();
     // draw_imageChar('A',500,500,0xFFFF0000);
     // draw_ImageString(250, 400, "Nguyen Giang Huy S3836454", RAINBOW);
@@ -1256,13 +1262,15 @@ void main()
     // draw_ImageString(250, 500, "Le Hong Thai S3752577", RAINBOW);
     // draw_ImageString(250, 550, "Tran Hoang Vu S3915185", RAINBOW);
 
-     drawString(200, 300,"EEET2490 - Embedded System: OS and Interfacing", 0x04);
-     drawString(200, 350,"Assignment 3 - Group 21", 0x0E);
-     drawString(200, 400,"<Student name>          <Student ID>", 0x06);
-     drawString(200,500,"Nguyen Giang Huy   -     S3836454", 0x0A);
-     drawString(200,450,"Hua Nam Huy        -     S3811308", 0x09);
-     drawString(200,550,"Le Hong Thai       -     S3752577", 0x0F);
-     drawString(200,600,"Tran Hoang Vu      -     S3915185", 0x0D);
+
+    // Display the team member name and id 
+    renderString(200, 300,"EEET2490 - Embedded System: OS and Interfacing", 0x04);
+    renderString(200, 350,"Assignment 3 - Group 21", 0x0E);
+    renderString(200, 400,"<Student name>          <Student ID>", 0x06);
+    renderString(200,500,"Nguyen Giang Huy   -     S3836454", 0x0A);
+    renderString(200,450,"Hua Nam Huy        -     S3811308", 0x09);
+    renderString(200,550,"Le Hong Thai       -     S3752577", 0x0F);
+    renderString(200,600,"Tran Hoang Vu      -     S3915185", 0x0D);
 
     uart_puts("\n");
     uart_puts("MyBareMetalOS> ");

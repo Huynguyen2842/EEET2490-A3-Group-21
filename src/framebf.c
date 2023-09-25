@@ -4,10 +4,6 @@
 #include "font.h"
 #include "mfont.h"
 
-#define FONT_BPG 8
-#define FONT_WIDTH 8
-#define FONT_HEIGHT 8
-
 //Use RGBA32 (32 bits for each pixel)
 #define COLOR_DEPTH 32
 //Pixel Order: BGR in memory order (little endian --> RGB in byte order)
@@ -87,6 +83,12 @@ void framebf_init()
         uart_puts("Unable to get a frame buffer with provided setting\n");
     }
 }
+
+void drawPixel(int x, int y, unsigned char attr) {
+    int offs = (y * pitch) + (x * 4);
+    *((unsigned int*)(fb + offs)) = vgapal[attr & 0x0f];
+}
+
 void drawPixelARGB32(int x, int y, unsigned int attr)
 {
     int offs = (y * pitch) + (COLOR_DEPTH/8 * x);
@@ -248,38 +250,67 @@ void draw_ImageString(int x, int y, char *s, unsigned int attr) {
     }
 }
 
-void drawChar(unsigned char ch, int x, int y, unsigned char attr)
+// void drawChar(unsigned char ch, int x, int y, unsigned char attr)
+// {
+//     unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
+//     for (int i=0;i<FONT_HEIGHT;i++) {
+// 	for (int j=0;j<FONT_WIDTH;j++) {
+// 	    unsigned char mask = 1 << j;
+// 	    unsigned char col = (*glyph & mask) ? attr : 0x00;
+//         for (int dx = 0; dx < scale; ++dx) {
+//             for (int dy = 0; dy < scale; ++dy) {
+// 	            drawPixel(x+j*scale + dx, y + i*scale + dy, col);
+//             }
+//         }
+// 	}
+// 	glyph += FONT_BPL;
+//     }
+// }
+
+void renderCharacter(unsigned char character, int x, int y, unsigned char attr)
 {
-    unsigned char *glyph = (unsigned char *)&font + (ch < FONT_NUMGLYPHS ? ch : 0) * FONT_BPG;
-    for (int i=0;i<FONT_HEIGHT;i++) {
-	for (int j=0;j<FONT_WIDTH;j++) {
-	    unsigned char mask = 1 << j;
-	    unsigned char col = (*glyph & mask) ? attr : 0x00;
-        for (int dx = 0; dx < scale; ++dx) {
-            for (int dy = 0; dy < scale; ++dy) {
-	            drawPixel(x+j*scale + dx, y + i*scale + dy, col);
+    unsigned char *fontData = (unsigned char *)&font_bitmap + (character < FONT_NUMGLYPHS ? character : 0) * FONT_BPG;
+    for (int row = 0; row < FONT_HEIGHT; ++row) {
+        for (int col = 0; col < FONT_WIDTH; ++col) {
+            unsigned char bitMask = 1 << col;
+            unsigned char color = (*fontData & bitMask) ? attr : 0x00;
+            for (int scaleX = 0; scaleX < scale; ++scaleX) {
+                for (int scaleY = 0; scaleY < scale; ++scaleY) {
+                    drawPixel(x + col * scale + scaleX, y + row * scale + scaleY, color);
+                }
             }
         }
-	}
-	glyph += FONT_BPL;
+        fontData += FONT_BPL;
     }
-}
-void drawPixel(int x, int y, unsigned char attr) {
-    int offs = (y * pitch) + (x * 4);
-    *((unsigned int*)(fb + offs)) = vgapal[attr & 0x0f];
 }
 
-void drawString(int x, int y, char *s, unsigned char attr)
+// void drawString(int x, int y, char *s, unsigned char attr)
+// {
+//     while (*s) {
+//        if (*s == '\r') {
+//           x = 0;
+//        } else if(*s == '\n') {
+//           x = 0; y += FONT_HEIGHT * scale;
+//        } else {
+// 	  drawChar(*s, x, y, attr);
+//           x += FONT_WIDTH * scale;
+//        }
+//        s++;
+//     }
+// }
+
+void renderString(int x, int y, char *str, unsigned char attr)
 {
-    while (*s) {
-       if (*s == '\r') {
-          x = 0;
-       } else if(*s == '\n') {
-          x = 0; y += FONT_HEIGHT * scale;
-       } else {
-	  drawChar(*s, x, y, attr);
-          x += FONT_WIDTH * scale;
-       }
-       s++;
+    while (*str) {
+        if (*str == '\r') {
+            x = 0;
+        } else if (*str == '\n') {
+            x = 0; y += FONT_HEIGHT * scale;
+        } else {
+            renderCharacter(*str, x, y, attr);
+            x += FONT_WIDTH * scale;
+        }
+        str++;
     }
 }
+
