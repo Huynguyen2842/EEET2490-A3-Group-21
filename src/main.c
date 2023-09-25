@@ -40,10 +40,11 @@ int *dist;
 int x_monster = 0;
 int y_monster = 0;
 int directionPathIndex = 0;
-int bombCount = 0;
 
-int x_bomb;
-int y_bomb;
+int *x_bomb;
+int *y_bomb;
+static int bombIndex = 0;
+int *bombListTimer;
 
 enum Color {
   RAINBOW = 0,
@@ -677,6 +678,9 @@ void GameGenerator()
     directionPathIndex = 0;
     path = (char *)malloc(widthScreen * heightScreen * sizeof(char));
     maze = (char *)malloc(widthScreen * heightScreen * sizeof(char));
+    x_bomb = (int *)malloc(sizeof(int) * 10);
+    y_bomb = (int *)malloc(sizeof(int) * 10);
+    bombListTimer = (int *)malloc(sizeof(int) * 10);
     dist = (int *)malloc(sizeof(int));
     if (maze == NULL)
     {
@@ -756,31 +760,38 @@ void cli()
     char c;
     static int bombTimer = 0;
     static int monsterTimer = 0;
+    static int bombExploded = 0;
     // read and send back each char
     if (inGame == 1) {
         wait_msec(100000);
-        if (bombTimer > 30) {
-            bombCount = 0;
-            bombTimer = 0;
-            maze[y_bomb * widthScreen + x_bomb - 1] = 0;
-            maze[y_bomb * widthScreen + x_bomb + 1] = 0;
-            maze[y_bomb * widthScreen + x_bomb - widthScreen] = 0;
-            maze[y_bomb * widthScreen + x_bomb + widthScreen] = 0;
-            clearFrameBox((x_bomb) * 20 - 20, y_bomb * 20);
-            clearFrameBox((x_bomb) * 20 + 20, y_bomb * 20);
-            clearFrameBox(x_bomb * 20, (y_bomb) * 20 + 20);
-            clearFrameBox(x_bomb * 20, (y_bomb) * 20 - 20);
-            printf("%d %d", abs(x_monster - x_bomb * 20), abs(y_monster - y_bomb * 20));
-            if (abs(x_monster - x_bomb * 20) <= 21 && abs(y_monster - y_bomb * 20) <= 21) {
+        for (int i = 0; i < bombIndex; i++) {
+            if (bombListTimer[i] > 30) {
+            bombListTimer[i] = 0;
+            bombExploded++;
+            maze[y_bomb[i] * widthScreen + x_bomb[i] - 1] = 0;
+            maze[y_bomb[i] * widthScreen + x_bomb[i] + 1] = 0;
+            maze[y_bomb[i] * widthScreen + x_bomb[i] - widthScreen] = 0;
+            maze[y_bomb[i] * widthScreen + x_bomb[i] + widthScreen] = 0;
+            clearFrameBox((x_bomb[i]) * 20 - 20, y_bomb[i] * 20);
+            clearFrameBox((x_bomb[i]) * 20 + 20, y_bomb[i] * 20);
+            clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 + 20);
+            clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 - 20);
+            printf("%d %d", abs(x_monster - x_bomb[i] * 20), abs(y_monster - y_bomb[i] * 20));
+            if (abs(x_monster - x_bomb[i] * 20) <= 21 && abs(y_monster - y_bomb[i] * 20) <= 21) {
                 *(dist) = 0;
-
             }
+            if (bombExploded == bombIndex) {
+                bombExploded = 0;
+                bombIndex = 0;
+            }
+            printf("This is bombIndex: %d\n", bombIndex);
+        }
         }
         monsterTimer++;
 
-        if (bombCount == 1) {
-            bombTimer++;
-            printf("%d\n", bombTimer);
+        for (int i = 0; i < bombIndex; i++) {
+            bombListTimer[i]++;
+            printf("%d\n", bombListTimer[i]);
         }
         if (monsterTimer % 5 == 0) {
             if (directionPathIndex < *(dist)) {
@@ -855,9 +866,10 @@ void cli()
         /* WALL BOMB
         */
         else if (c == 'k') {
-            x_bomb = x_direct / 20;
-            y_bomb = y_direct / 20;
-            bombCount++;
+            x_bomb[bombIndex] = x_direct / 20;
+            y_bomb[bombIndex] = y_direct / 20;
+            bombListTimer[bombIndex] = 0;
+            bombIndex++;
         }
         /* MONSTER KILLER BOMB
         */
