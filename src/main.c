@@ -37,9 +37,6 @@ int y_direct = 0;
 int *path;
 int *dist;
 
-int x_monster = 0;
-int y_monster = 0;
-int directionPathIndex = 0;
 
 int *x_bomb;
 int *y_bomb;
@@ -52,6 +49,26 @@ enum Color {
   COOLCOLOR = 1
 };
 
+static int gameLevel = 0;
+int *monsters;
+int **pathsPointer;
+int **monstersStepCountPointer;
+
+int *monstersTimer;
+static int monsterTimer = 0;
+
+int *monstersPathIndex;
+int directionPathIndex = 0;
+
+
+int *x_monsters;
+int *y_monsters;
+
+int x_monster = 0;
+int y_monster = 0;
+
+static int mapHorizontalPadding = 0;
+static int mapVerticalPadding = 0;
 void *malloc(size_t sz)
 {
     void *mem;
@@ -187,7 +204,7 @@ void draw_destination(int x, int y)
     {
         for (int i = 0; i < 21; i++)
         {
-            drawPixelARGB32(i + x, j + y, epd_bitmap_destination[j * 21 + i]);
+            drawPixelARGB32(i + x + mapHorizontalPadding, j + y + mapVerticalPadding, epd_bitmap_destination[j * 21 + i]);
         }
     }
 }
@@ -237,7 +254,7 @@ void draw_wall(int x, int y)
     {
         for (int i = 0; i < 20; i++)
         {
-            drawPixelARGB32(i + x, j + y, epd_bitmap_wall[j * 20 + i]);
+            drawPixelARGB32(i + x + mapHorizontalPadding, j + y + mapVerticalPadding, epd_bitmap_wall[j * 20 + i]);
         }
     }
 }
@@ -680,6 +697,7 @@ void play_game()
 
 void GameGenerator()
 {
+    gameLevel++;
     directionPathIndex = 0;
     path = (char *)malloc(widthScreen * heightScreen * sizeof(char));
     maze = (char *)malloc(widthScreen * heightScreen * sizeof(char));
@@ -687,14 +705,47 @@ void GameGenerator()
     y_bomb = (int *)malloc(sizeof(int) * 10);
     bombListTimer = (int *)malloc(sizeof(int) * 10);
     dist = (int *)malloc(sizeof(int));
+
+    monsters = (int *)malloc(sizeof(int)*gameLevel);
+
+    pathsPointer = (int **)malloc(gameLevel * sizeof(int*));
+    monstersStepCountPointer = (int**)malloc(gameLevel*sizeof(int*));
+
+
+    monstersTimer = (int *)malloc(sizeof(int)*gameLevel);
+    for (int i = 0; i < gameLevel; i++) {
+        monstersTimer[i] = 0;
+    }
+
+
+    monstersPathIndex = (int *)malloc(sizeof(int)*gameLevel);
+    for (int i = 0; i < gameLevel; i++) {
+        monstersPathIndex[i] = 0;
+    }
+
+    x_monsters = (int *)malloc(sizeof(int)*gameLevel);
+    y_monsters = (int *)malloc(sizeof(int)*gameLevel);
+
     if (maze == NULL)
     {
         printf("Not enough memory, the game cant be generated!");
     }
     else
     {
+        mapHorizontalPadding = (1024 - widthScreen * 20) / 2 - 10;
+        mapVerticalPadding = (768 - heightScreen * 20) / 2 - 10;
         clearGame(widthScreen, heightScreen);
-        GenerateMaze(maze, widthScreen, heightScreen, path, dist);
+        GenerateMaze(maze, widthScreen, heightScreen, monsters, gameLevel);
+        for (int i = 0; i < gameLevel; i++) {
+            int *pathTemp = (char *)malloc(widthScreen * heightScreen * sizeof(char));
+            int *distTemp = (int *)malloc(sizeof(int));
+            FindToDirection(maze, widthScreen, heightScreen, monsters[i], monsters, player, pathTemp, distTemp, 0, gameLevel);
+            pathsPointer[i] = pathTemp;
+            monstersStepCountPointer[i] = distTemp;
+            printf("Got to this state 1");
+            printf("Amount of steps in monstersStepCountPointer: %d\n", (**(monstersStepCountPointer + i)));
+            // MonsterFindDirection(maze, widthScreen, heightScreen, monsters[i], monsters, player, pathTemp, distTemp, gameLevel);
+        }
         ShowMaze(maze, widthScreen, heightScreen);
         drawMap(maze, widthScreen, heightScreen);
         inGame = 1;
@@ -707,7 +758,7 @@ void clearPlayeFrame(int heightScreen, int widthScreen)
     {
         for (int i = 0; i < widthScreen; i++)
         {
-            drawPixelARGB32(i + x_direct, j + y_direct, 0x00000000);
+            drawPixelARGB32(i + x_direct + mapHorizontalPadding, j + y_direct + mapVerticalPadding, 0x00000000);
         }
     }
 }
@@ -717,17 +768,17 @@ void clearFrameBox(int x, int y) {
     {
         for (int i = 0; i < 20; i++)
         {
-            drawPixelARGB32(i + x, j + y, 0x00000000);
+            drawPixelARGB32(i + x + mapHorizontalPadding, j + y + mapVerticalPadding, 0x00000000);
         }
     }
 }
-void clearMonsterFrame(int heightScreen, int widthScreen)
+void clearMonsterFrame(int heightScreen, int widthScreen, int x, int y)
 {
     for (int j = 0; j < heightScreen; j++)
     {
         for (int i = 0; i < widthScreen; i++)
         {
-            drawPixelARGB32(i + x_monster, j + y_monster, 0x00000000);
+            drawPixelARGB32(i + x + mapHorizontalPadding, j + y + mapVerticalPadding, 0x00000000);
         }
     }
 }
@@ -749,7 +800,7 @@ void clearGame(int widthScreen, int heightScreen)
     {
         for (int i = 0; i < widthScreen * 20; i++)
         {
-            drawPixelARGB32(i, j, 0x00000000);
+            drawPixelARGB32(i + mapHorizontalPadding, j + mapVerticalPadding, 0x00000000);
         }
     }
 }
@@ -764,7 +815,6 @@ void cli()
     int is_IMG = 0;
     char c;
     static int bombTimer = 0;
-    static int monsterTimer = 0;
     static int bombExploded = 0;
     // read and send back each char
     if (inGame == 1) {
@@ -791,22 +841,37 @@ void cli()
                 }
             }
         }
+        for (int i = 0; i < gameLevel; i++) {
+            monstersTimer[i]++;
+        }
         monsterTimer++;
 
         for (int i = 0; i < bombIndex; i++) {
             bombListTimer[i]++;
             printf("%d\n", bombListTimer[i]);
         }
-        if (monsterTimer % 5 == 0) {
-            if (directionPathIndex < *(dist)) {
-                clearMonsterFrame(20, 21);
-                x_monster = path[directionPathIndex] % widthScreen * 20;
-                y_monster = path[directionPathIndex] / widthScreen * 20;
-                // printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
-                directionPathIndex++;
-                draw_destination(x_monster, y_monster);
+        for (int i = 0; i < gameLevel; i++) {
+            if (monstersTimer[i] % 5 == 0) {
+                if (*(monstersPathIndex + i) < (**(monstersStepCountPointer + i))) {
+                    clearMonsterFrame(20, 21, x_monsters[i], y_monsters[i]);
+                    x_monsters[i] = pathsPointer[i][*(monstersPathIndex + i)] % widthScreen * 20;
+                    y_monsters[i] = pathsPointer[i][*(monstersPathIndex + i)] / widthScreen * 20;
+                    (*(monstersPathIndex + i))++;
+                    draw_destination(x_monsters[i], y_monsters[i]);
+                }
             }
         }
+
+        // if (monsterTimer % 5 == 0) {
+        //     if (directionPathIndex < *(dist)) {
+        //         clearMonsterFrame(20, 21, x_monster, y_monster);
+        //         x_monster = path[directionPathIndex] % widthScreen * 20;
+        //         y_monster = path[directionPathIndex] / widthScreen * 20;
+        //         // printf("Got x: %d y: %d \n", x_monster / 20, y_monster / 20);
+        //         directionPathIndex++;
+        //         draw_destination(x_monster, y_monster);
+        //     }
+        // }
     }
     if (inGame == 0) {
     c = uart_getc();

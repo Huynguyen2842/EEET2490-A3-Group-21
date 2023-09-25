@@ -1,8 +1,7 @@
 #include "Maze.h"
 
 
-int player;
-int monster;
+
 /* Display the maze. */
 void ShowMaze(const char *maze, int width, int height)
 {
@@ -87,43 +86,49 @@ int rand_range(int min, int max)
    return min + (int)(random_value % range);
 }
 
-int FindToDirection(char *maze, int width, int height, int chaser, int destination, int *path, int *dist, int findingDist) {
+int FindToDirection(char *maze, int width, int height, int chaser, int *monsters, int destinationValue, int *path, int *dist, int findingDist, int gameLevel) {
    if (maze[chaser] == 1 || chaser < 0 || chaser >= width * height || maze[chaser] == 4) {
       return 666;
    }
-   if (maze[chaser] == 2) {
+   if (maze[chaser] == 5) {
       *(dist) = findingDist;
+      printf("The step in maze.c : %d\n", findingDist);
       path[findingDist + 1] = 9999;
       for (int x = 0; x < width * height; x++) {
          if (maze[x] == 4) {
             maze[x] = 0;
          }
       }
-      maze[monster] = 3;
+      for (int i = 0; i < gameLevel; i++) {
+         maze[*(monsters + i)] = 3;
+      }
+      printf("this is destination: %d %d\n", destination % width, destination / width);
+      maze[destination] = 2;
+      // maze[destinationValue] = 2;
       return 999;
    }
    path[findingDist] = chaser;
    maze[chaser] = 4;
-   if (FindToDirection(maze, width, height, chaser - width, destination, path, dist, findingDist + 1) == 999) {
+   if (FindToDirection(maze, width, height, chaser - width, monsters, destinationValue, path, dist, findingDist + 1, gameLevel) == 999) {
       return 999;
    }
    if (chaser -1 >= ((chaser / width) * width)) {
-      if (FindToDirection(maze, width, height, chaser - 1, destination, path, dist, findingDist + 1) == 999) {
+      if (FindToDirection(maze, width, height, chaser - 1, monsters, destinationValue, path, dist, findingDist + 1, gameLevel) == 999) {
          return 999;
       }
    }
-   if (FindToDirection(maze, width, height, chaser + width, destination, path, dist, findingDist + 1) == 999) {
+   if (FindToDirection(maze, width, height, chaser + width, monsters, destinationValue, path, dist, findingDist + 1, gameLevel) == 999) {
       return 999;
    }
    if (chaser + 1 < ((chaser / width) * width + width)) {
-      if (FindToDirection(maze, width, height, chaser + 1, destination, path, dist, findingDist + 1) == 999) {
+      if (FindToDirection(maze, width, height, chaser + 1, monsters, destinationValue, path, dist, findingDist + 1, gameLevel) == 999) {
          return 999;
       }
    }
    return 101;
 }
 
-void GenerateMaze(char *maze, int width, int height, int *path, int *dist)
+void GenerateMaze(char *maze, int width, int height, int *monsters, int gameLevel)
 {
    int x, y, dir;
    int frontier = 0;
@@ -234,7 +239,6 @@ void GenerateMaze(char *maze, int width, int height, int *path, int *dist)
          frontier++;
       }
    }
-   int destination = 0;
    while (1)
    {
       dir = rand_range(0, width * height);
@@ -255,15 +259,18 @@ void GenerateMaze(char *maze, int width, int height, int *path, int *dist)
          break;
       }
    }
-   while (1)
-   {
-      dir = rand_range(0, width * height);
-      if (maze[dir] == 0)
+   for (int i = 0; i < gameLevel; i++) {
+      while (1)
       {
-         maze[dir] = 3;
-         monster = dir;
-         break;
+         dir = rand_range(0, width * height);
+         if (maze[dir] == 0)
+         {
+            maze[dir] = 3;
+            monster = dir;
+            monsters[i] = dir;
+            printf("%d\n", i);
+            break;
+         }
       }
    }
-   FindToDirection(maze, width, height, dir, destination, path, dist, 0);
 }

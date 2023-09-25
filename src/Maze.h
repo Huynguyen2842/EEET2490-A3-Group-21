@@ -2,6 +2,9 @@
 #include "../gcclib/stdint.h"
 #include "../gcclib/stdarg.h"
 
+static int destination;
+static int player;
+static int monster;
 /* Display the maze. */
 void ShowMaze(const char *maze, int width, int height);
 
@@ -9,6 +12,8 @@ void ShowMaze(const char *maze, int width, int height);
 void CarveMaze(char *maze, int width, int height, int x, int y);
 
 /* Generate maze in matrix maze with size width, height. */
-void GenerateMaze(char *maze, int width, int height, int *path, int *dist);
+void GenerateMaze(char *maze, int width, int height, int *monsters, int gameLevel);
+
+int FindToDirection(char *maze, int width, int height, int chaser, int *monsters, int destinationValue, int *path, int *dist, int findingDist, int gameLevel);
 
 int rand_range(int min, int max);
