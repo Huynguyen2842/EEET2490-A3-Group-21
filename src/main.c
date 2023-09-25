@@ -17,8 +17,8 @@
 #define MAX_TOKENS 100
 #define HISTORY_SIZE 10
 #define MAX_REQ_VALUE 10
-int widthScreen = 40;
-int heightScreen = 20;
+int widthScreen = 45;
+int heightScreen = 30;
 char history[HISTORY_SIZE][MAX_CMD_SIZE];
 int history_count = 0;
 int current_history_index = 0;
@@ -46,6 +46,7 @@ int *y_bomb;
 static int bombIndex = 0;
 int *bombListTimer;
 
+int direction = 0;
 enum Color {
   RAINBOW = 0,
   COOLCOLOR = 1
@@ -139,6 +140,7 @@ int checkDirection(int dir) {
     switch (dir)
     {
     case 3:
+        direction = 3;
         if (myFrontier->north == 0 || myFrontier->north == 3 || myFrontier->north == 4 || myFrontier->north == 5) {
             return 1;
         }
@@ -147,6 +149,7 @@ int checkDirection(int dir) {
         }
         break;
     case 4:
+        direction = 4;
         if (myFrontier->east == 0 || myFrontier->east == 3 || myFrontier->east == 4 || myFrontier->east == 5) {
             return 1;
         }
@@ -155,6 +158,7 @@ int checkDirection(int dir) {
         }
         break;
     case 5:
+        direction = 5;
         if (myFrontier->south == 0 || myFrontier->south == 3 || myFrontier->south == 4 || myFrontier->south == 5) {
             return 1;
         }
@@ -163,6 +167,7 @@ int checkDirection(int dir) {
         }
         break;
     case 6:
+        direction = 6;
         if (myFrontier->west == 0 || myFrontier->west == 3 || myFrontier->west == 4 || myFrontier->west == 5) {
             return 1;
         }
@@ -766,26 +771,25 @@ void cli()
         wait_msec(100000);
         for (int i = 0; i < bombIndex; i++) {
             if (bombListTimer[i] > 30) {
-            bombListTimer[i] = 0;
-            bombExploded++;
-            maze[y_bomb[i] * widthScreen + x_bomb[i] - 1] = 0;
-            maze[y_bomb[i] * widthScreen + x_bomb[i] + 1] = 0;
-            maze[y_bomb[i] * widthScreen + x_bomb[i] - widthScreen] = 0;
-            maze[y_bomb[i] * widthScreen + x_bomb[i] + widthScreen] = 0;
-            clearFrameBox((x_bomb[i]) * 20 - 20, y_bomb[i] * 20);
-            clearFrameBox((x_bomb[i]) * 20 + 20, y_bomb[i] * 20);
-            clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 + 20);
-            clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 - 20);
-            printf("%d %d", abs(x_monster - x_bomb[i] * 20), abs(y_monster - y_bomb[i] * 20));
-            if (abs(x_monster - x_bomb[i] * 20) <= 21 && abs(y_monster - y_bomb[i] * 20) <= 21) {
-                *(dist) = 0;
+                bombListTimer[i] = 0;
+                bombExploded++;
+                maze[y_bomb[i] * widthScreen + x_bomb[i] - 1] = 0;
+                maze[y_bomb[i] * widthScreen + x_bomb[i] + 1] = 0;
+                maze[y_bomb[i] * widthScreen + x_bomb[i] - widthScreen] = 0;
+                maze[y_bomb[i] * widthScreen + x_bomb[i] + widthScreen] = 0;
+                clearFrameBox((x_bomb[i]) * 20 - 20, y_bomb[i] * 20);
+                clearFrameBox((x_bomb[i]) * 20 + 20, y_bomb[i] * 20);
+                clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 + 20);
+                clearFrameBox(x_bomb[i] * 20, (y_bomb[i]) * 20 - 20);
+                printf("%d %d", abs(x_monster - x_bomb[i] * 20), abs(y_monster - y_bomb[i] * 20));
+                if (abs(x_monster - x_bomb[i] * 20) <= 21 && abs(y_monster - y_bomb[i] * 20) <= 21) {
+                    *(dist) = 0;
+                }
+                if (bombExploded == bombIndex) {
+                    bombExploded = 0;
+                    bombIndex = 0;
+                }
             }
-            if (bombExploded == bombIndex) {
-                bombExploded = 0;
-                bombIndex = 0;
-            }
-            printf("This is bombIndex: %d\n", bombIndex);
-        }
         }
         monsterTimer++;
 

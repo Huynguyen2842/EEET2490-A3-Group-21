@@ -169,7 +169,7 @@ void GenerateMaze(char *maze, int width, int height, int *path, int *dist)
       *(yDirArrays + frontier) = y;
       frontier++;
    }
-   for (int i = 0; i < 199; i++)
+   for (int i = 0; i < 325; i++)
    {
       while (1)
       {
